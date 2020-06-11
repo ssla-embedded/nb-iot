@@ -795,7 +795,7 @@ void main(void)
 			break;
 		}
                 // if the requested is a publish and it is from the application then publish it
-		if (requested.tag == PUBLISH_ALL && requested.src_device_id == 1000) {
+		if (requested.tag == PUBLISH_ALL && requested.dest_device_id == 1000) {
 
 			sensor_sample_fetch(dev_bme680);
 			sensor_channel_get(dev_bme680, SENSOR_CHAN_AMBIENT_TEMP, &temp);
