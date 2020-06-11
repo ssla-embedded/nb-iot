@@ -828,7 +828,7 @@ void main(void)
 			sys_reboot(0);
 		}
 
-		k_sleep(K_MSEC(500));
+		k_sleep(K_MSEC(1000));
 	}
 
 	printk("Disconnecting MQTT client...\n");
