@@ -35,24 +35,10 @@ BUILD_ASSERT_MSG(!IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT),
 #endif
 #endif
 
+#include "comms.h"
+
 #define IMEI_LEN 15
 #define CLIENT_ID_LEN (IMEI_LEN + 4)
-
-#define SSLA_TOPIC      "conversation"
-
-enum request_type { PUBLISH_ALL = 1,
-                    LED_ON,
-                    LED_OFF,
-                    BUZZER_ON,
-                    BUZZER_OFF,
-                    MOSFET1_ON,
-                    MOSFET1_OFF,
-                    MOSFET2_ON,
-                    MOSFET2_OFF,
-                    MOSFET3_ON,
-                    MOSFET3_OFF,
-                    MOSFET4_ON,
-                    MOSFET4_OFF};
 
 static u8_t client_id_buf[CLIENT_ID_LEN+1];
 
@@ -77,7 +63,7 @@ static bool connected;
 static bool do_reboot;
 
 /* Requested flag */
-static enum request_type requested;
+static struct request requested;
 
 #if defined(CONFIG_BSD_LIBRARY)
 /**@brief Recoverable BSD library error. */
@@ -808,7 +794,8 @@ void main(void)
 			printk("POLLNVAL\n");
 			break;
 		}
-		if (requested == PUBLISH_ALL) {
+                // if the requested is a publish and it is from the application then publish it
+		if (requested.tag == PUBLISH_ALL && requested.src_device_id == 1000) {
 
 			sensor_sample_fetch(dev_bme680);
 			sensor_channel_get(dev_bme680, SENSOR_CHAN_AMBIENT_TEMP, &temp);
