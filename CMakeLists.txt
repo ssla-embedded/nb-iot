@@ -27,6 +27,8 @@ project(mqtt-aws-jobs-fota)
 target_sources(app PRIVATE
 	src/main.c
 	)
-
+target_sources(app PRIVATE
+        src/buzzer.c
+        )
 target_include_directories(app PRIVATE src)
 # NORDIC SDK APP END

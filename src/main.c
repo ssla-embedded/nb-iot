@@ -36,6 +36,7 @@ BUILD_ASSERT_MSG(!IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT),
 #endif
 
 #include "comms.h"
+#include "buzzer.h"
 
 #define IMEI_LEN 15
 #define CLIENT_ID_LEN (IMEI_LEN + 4)
@@ -703,44 +704,28 @@ void main(void)
 	 */
 	boot_write_img_confirmed();
 
-	/* Light sensor BH1749
-	 *
-	 */
+	// Color sensor BH1749
 	struct device *dev_bh1749;
 
 	if (IS_ENABLED(CONFIG_LOG_BACKEND_RTT)) {
-		/* Give RTT log time to be flushed before executing tests */
-		k_sleep(500);
+		k_sleep(500);/* Give RTT log time to be flushed before executing tests */
 	}
+
 	dev_bh1749 = device_get_binding("BH1749");
 	if (dev_bh1749 == NULL) {
 		printk("Failed to get device BH1749 binding\n");
 		return;
 	}
 	printk("device is %p, name is %s\n", dev_bh1749, dev_bh1749->config->name);
-	
+	get_color_data(dev_bh1749);
 
-	/* Accelerometer sensor ADXL372
-	 *
-	 */
+	// Accelerometer sensor ADXL372
 	struct device *dev_adxl372 = device_get_binding("ADXL372");
 	if (dev_adxl372 == NULL) {
 		printk("Could not get accelerometer ADXL372 device\n");
 		return;
 	}
 	printk("device is %p, name is %s\n", dev_adxl372, dev_adxl372->config->name);
-
-	/* Environmental sensor BME280
-	 *
-	 */
-	struct device *dev_bme680 = device_get_binding("BME680");
-
-	printf("device is %p, name is %s\n", dev_bme680, dev_bme680->config->name);
-
-	// BH1749
-	get_color_data(dev_bh1749);
-
-	// ADXL372
 	if (sensor_sample_fetch(dev_adxl372)) {
 		printk("sensor_sample_fetch failed\n");
 	}
@@ -752,7 +737,10 @@ void main(void)
 		sensor_value_to_double(&accel[1]),
 		sensor_value_to_double(&accel[2]));
 
-	// BME680
+	// Environmental sensor BME680
+	struct device *dev_bme680 = device_get_binding("BME680");
+	printf("device is %p, name is %s\n", dev_bme680, dev_bme680->config->name);
+
 	sensor_sample_fetch(dev_bme680);
 	sensor_channel_get(dev_bme680, SENSOR_CHAN_AMBIENT_TEMP, &temp);
 	sensor_channel_get(dev_bme680, SENSOR_CHAN_PRESS, &press);
@@ -763,6 +751,13 @@ void main(void)
 			temp.val1, temp.val2, press.val1, press.val2,
 			humidity.val1, humidity.val2, gas_res.val1,
 			gas_res.val2);
+
+	err = ui_buzzer_init();
+	if (err) {
+		printk("Could not enable buzzer, err code: %d\n", err);
+		return err;
+	}
+	ui_buzzer_set_frequency(5000, 35);
 
 	while (1) {
 		err = poll(&fds, 1, K_SECONDS(10));
