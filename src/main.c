@@ -37,6 +37,7 @@ BUILD_ASSERT_MSG(!IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT),
 
 #include "comms.h"
 #include "buzzer.h"
+#include "mosfet.h"
 
 #define IMEI_LEN 15
 #define CLIENT_ID_LEN (IMEI_LEN + 4)
@@ -758,6 +759,10 @@ void main(void)
 		return err;
 	}
 	ui_buzzer_set_frequency(5000, 35);
+
+	// MOS changes
+	mosfet_init();
+	mosfet_set_frequency(5000, 35, 0);
 
 	while (1) {
 		err = poll(&fds, 1, K_SECONDS(10));
